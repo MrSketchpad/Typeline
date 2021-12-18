@@ -29,7 +29,7 @@ internal object Main {
         objects.add(BooleanClass(null))
 
         val scan = Scanner(System.`in`)
-        println("TypeLine > ")
+        print("TypeLine > ")
         while (true) {
             val line = scan.nextLine()
             if (line.startsWith("run ")) {
@@ -46,7 +46,7 @@ internal object Main {
             } else {
                 parse(line)
             }
-            println("TypeLine > ")
+            print("TypeLine > ")
         }
     }
 }
