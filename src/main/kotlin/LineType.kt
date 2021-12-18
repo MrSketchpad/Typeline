@@ -1,3 +1,6 @@
+import exceptions.LineException
+import exceptions.LineException.Companion.throwLine
+import exceptions.SyntaxException
 import java.lang.Exception
 
 enum class LineType(val type: Class<*>, val strValue: String) {
@@ -16,7 +19,11 @@ enum class LineType(val type: Class<*>, val strValue: String) {
                 prev
             }
             STRING -> {
-                prev.substring(1, prev.length-1)
+                if (prev=="\"\"") {
+                    ""
+                } else {
+                    prev.substring(1, prev.length-1)
+                }
             }
             NOTHING -> {
                 "Nothing"
@@ -29,8 +36,15 @@ enum class LineType(val type: Class<*>, val strValue: String) {
             var newObj: Any? = null
             try {
                 newObj = obj.toString()
-                if (newObj=="") {
+                if (newObj.toString()=="") {
                     return NOTHING
+                } else if (newObj.toString().contains("\"")) {
+                    return if (newObj.toString().indexOf("\"") != newObj.toString().lastIndexOf("\"")) {
+                        STRING
+                    } else {
+                        throwLine(SyntaxException("Unclosed parenthesis in string."))
+                        NOTHING
+                    }
                 }
                 newObj = obj.toString().toInt()
             } catch (e: Exception) {}

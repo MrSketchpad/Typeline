@@ -1,15 +1,69 @@
 import LineObject.Companion.getFromName
 import classes.IntClass
 import classes.StringClass
-import java.util.ArrayList
-import javax.sound.sampled.Line
+import classes.SystemClass
+import exceptions.IllegalArgumentException
+import exceptions.LineException
+import exceptions.LineException.Companion.throwLine
+import exceptions.SyntaxException
+import exceptions.UnfoundException
+import java.util.regex.Pattern
 
 internal object Interpreter {
+
     @JvmStatic
-    fun interpret(text: String) {
+    fun parse(text: String) {
+        val split = text.split("\\.".toRegex()).toTypedArray()
+        val blacklisted = mutableListOf<Int>()
+        for ((index, obj) in split.withIndex()) {
+            if (blacklisted.contains(index)) {
+                continue
+            }
+            if (obj.contains("(")) {
+                var actual = obj
+                if (index!=split.size-1) {
+                    actual += "."+split[index+1]
+                    blacklisted.add(index+1)
+                }
+
+                var actualIndex = index
+                var working = false
+                var cut = ""
+
+                while (!working) {
+                    try {
+                        cut = actual.substring(actual.indexOf("(")+1, actual.lastIndexOf(")"))
+                        working = true
+                    } catch (e: Exception) {
+                        actualIndex += 1
+                        actual += "."
+                        actual += split[actualIndex]
+                        blacklisted.add(actualIndex)
+                    }
+                }
+
+                actual = actual.replaceRange(actual.indexOf("(")+1..actual.lastIndexOf(")"), interpret(cut).toString()) + ")"
+                split[index] = actual
+            }
+        }
+        val builder = StringBuilder()
+        for ((index, newObj) in split.withIndex()) {
+            builder.append(newObj).append(
+                if (index==split.size-1) ""
+                else "."
+            )
+        }
+        interpret(builder.toString())
+    }
+
+    @JvmStatic
+    fun interpret(text: String): Any? {
         val split = text.split("\\.".toRegex()).toTypedArray()
         var currentParent: LineObject? = null
-        for ((index, obj) in split.withIndex()) {
+        for (obj in split) {
+            if (split.size==1) {
+                return text
+            }
             if (currentParent == null) {
                 currentParent = getFromName(obj)
                 if (currentParent==null) {
@@ -21,12 +75,12 @@ internal object Interpreter {
                             currentParent = StringClass(obj)
                         }
                         LineType.NOTHING -> {
-                            println("Nothing cannot be used as an object!")
+                            throwLine(SyntaxException("Nothing cannot be used as an object!"))
                         }
                     }
                     if (currentParent == null) {
-                        println("Class $obj not found.")
-                        return
+                        throwLine(UnfoundException("Class $obj not found."))
+                        return ""
                     }
                 }
             } else {
@@ -34,8 +88,8 @@ internal object Interpreter {
                 try {
                     args = obj.substring(obj.indexOf("(") + 1, obj.indexOf(")"))
                 } catch (e: Exception) {
-                    println("Unclosed parenthesis when calling function $obj.")
-                    return
+                    throwLine(SyntaxException("Unclosed parenthesis when calling function $obj."))
+                    return ""
                 }
                 val splitArgs = args.split(",".toRegex()).toTypedArray()
                 val actualArgs: MutableList<LineType> = ArrayList()
@@ -54,21 +108,24 @@ internal object Interpreter {
                     formattedArgs.add(LineType[arg]!!.toLineString(arg))
                 }
                 if (!currentParent.hasFunction(obj, actualArgs)) {
-                    println("The class ${currentParent.name} has no function ${obj.substring(0, obj.indexOf("("))} with arguments" +
-                            " ${actualArgs.toString().replace("[", "").replace("]", "")}.")
-                    return
+                    throwLine(
+                        UnfoundException("The class ${currentParent.name} has no function ${obj.substring(0, obj.indexOf("("))}(" +
+                            "${actualArgs.toString().replace("[", "").replace("]", "")})."))
+                    return ""
                 }
                 val func = currentParent.getFunction(obj, actualArgs)
                 if (actualArgs == func?.args) {
-                    split[index] = func.action(formattedArgs.toList()).toString()
+                    return func.action(formattedArgs.toList())
                 } else {
-                    println(
+                    throwLine(
+                        IllegalArgumentException(
                         "Incorrect arguments for function " + func?.name + ": required " + func?.args.toString()
                             .replace("[", "").replace("]", "") + ", found " + actualArgs.toString().replace("[", "")
                             .replace("]", "") + "."
-                    )
+                    ))
                 }
             }
         }
+        return ""
     }
 }

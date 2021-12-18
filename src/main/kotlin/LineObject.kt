@@ -1,7 +1,5 @@
 import Main.objects
 import java.lang.Exception
-import java.util.HashMap
-import javax.sound.sampled.Line
 
 open class LineObject(var name: String, vararg tempFunctions: LineFunction) {
     val functions: MutableList<LineFunction>
@@ -34,6 +32,10 @@ open class LineObject(var name: String, vararg tempFunctions: LineFunction) {
                 }
             }
             return null
+        }
+        fun convertToString(str: String) = "\""+str+"\""
+        fun removeParenths(str: String): String {
+            return str.replaceFirst("\"", "").removeRange(str.length-2, str.length-1)
         }
     }
 }
