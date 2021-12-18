@@ -1,11 +1,12 @@
-import exceptions.LineException
-import exceptions.LineException.Companion.throwLine
-import exceptions.SyntaxException
-import java.lang.Exception
+package com.typeline
+
+import com.typeline.exceptions.LineException.Companion.throwLine
+import com.typeline.exceptions.SyntaxException
 
 enum class LineType(val type: Class<*>, val strValue: String) {
     STRING(String::class.java, "String"),
     INT(Int::class.java, "Int"),
+    BOOLEAN(Boolean::class.java, "Boolean"),
     NOTHING(Unit::class.java, "Nothing")
     ;
 
@@ -17,6 +18,9 @@ enum class LineType(val type: Class<*>, val strValue: String) {
         return when (this) {
             INT -> {
                 prev
+            }
+            BOOLEAN -> {
+                prev.substring(1, prev.length-1)
             }
             STRING -> {
                 if (prev=="\"\"") {
@@ -43,10 +47,14 @@ enum class LineType(val type: Class<*>, val strValue: String) {
                         STRING
                     } else {
                         throwLine(SyntaxException("Unclosed parenthesis in string."))
-                        NOTHING
+                        return NOTHING
                     }
+                } else {
+                    if (obj.toString() == "true" || obj.toString() == "false") {
+                        return BOOLEAN
+                    }
+                    newObj = obj.toString().toInt()
                 }
-                newObj = obj.toString().toInt()
             } catch (e: Exception) {}
             if (newObj!!::class == String::class) {
                 return STRING

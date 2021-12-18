@@ -1,24 +1,24 @@
-import Interpreter.interpret
-import Interpreter.parse
-import classes.IntClass
-import classes.StringClass
-import classes.SystemClass
-import exceptions.LineException
+package com.typeline
+
+import com.typeline.Interpreter.parse
+import com.typeline.classes.BooleanClass
+import com.typeline.classes.IntClass
+import com.typeline.classes.StringClass
+import com.typeline.classes.SystemClass
+import com.typeline.exceptions.LineException
 import java.io.File
 import java.util.*
-import javax.sound.sampled.Line
-import kotlin.jvm.JvmStatic
 
 internal object Main {
     var objects: MutableList<LineObject> = ArrayList()
     @JvmStatic var currentLine = 0
     @JvmStatic var currentFile: File? = null
     @JvmStatic
-    fun err(text: String, exc: LineException) {
-        if (currentFile!=null) {
-            System.err.println("${exc.NAME} at line $currentLine in ${currentFile!!.name}: $text")
+    fun err(exc: LineException) {
+        if (currentFile !=null) {
+            System.err.println("${exc::class.java.name} at line $currentLine in ${currentFile!!.name}: ${exc.msg}")
         } else {
-            System.err.println("${exc.NAME}: $text")
+            System.err.println("${exc::class.java.name}: ${exc.msg}")
         }
     }
     @JvmStatic
@@ -26,13 +26,14 @@ internal object Main {
         objects.add(SystemClass())
         objects.add(IntClass(null))
         objects.add(StringClass(null))
+        objects.add(BooleanClass(null))
 
         val scan = Scanner(System.`in`)
         println("TypeLine > ")
         while (true) {
             val line = scan.nextLine()
             if (line.startsWith("run ")) {
-                val file = File(javaClass.getResource(line.substring(4))!!.toURI())
+                val file = File(javaClass.classLoader.getResource(line.substring(4))!!.toURI())
                 if (file.exists()) {
                     currentFile = file
                     for (fileLine in file.readLines()) {

@@ -1,7 +1,8 @@
-package classes
+package com.typeline.classes
 
-import LineFunction
-import LineObject
+import com.typeline.LineFunction
+import com.typeline.LineObject
+import com.typeline.LineType
 
 class StringClass(val value: String?): LineObject("String") {
     init {

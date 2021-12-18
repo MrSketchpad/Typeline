@@ -1,13 +1,13 @@
-import LineObject.Companion.getFromName
-import classes.IntClass
-import classes.StringClass
-import classes.SystemClass
-import exceptions.IllegalArgumentException
-import exceptions.LineException
-import exceptions.LineException.Companion.throwLine
-import exceptions.SyntaxException
-import exceptions.UnfoundException
-import java.util.regex.Pattern
+package com.typeline
+
+import com.typeline.LineObject.Companion.getFromName
+import com.typeline.classes.BooleanClass
+import com.typeline.classes.IntClass
+import com.typeline.classes.StringClass
+import com.typeline.exceptions.IllegalArgumentException
+import com.typeline.exceptions.LineException.Companion.throwLine
+import com.typeline.exceptions.SyntaxException
+import com.typeline.exceptions.UnfoundException
 
 internal object Interpreter {
 
@@ -74,9 +74,13 @@ internal object Interpreter {
                         LineType.STRING -> {
                             currentParent = StringClass(obj)
                         }
+                        LineType.BOOLEAN -> {
+                            currentParent = BooleanClass(obj.toBoolean())
+                        }
                         LineType.NOTHING -> {
                             throwLine(SyntaxException("Nothing cannot be used as an object!"))
                         }
+
                     }
                     if (currentParent == null) {
                         throwLine(UnfoundException("Class $obj not found."))

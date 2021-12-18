@@ -1,9 +1,10 @@
-package exceptions
+package com.typeline.exceptions
+
+import com.typeline.Main
 
 open class LineException(val msg: String) {
-    open val NAME = "Exception"
     fun throwLine() {
-        Main.err(msg, this)
+        Main.err(this)
     }
     companion object {
         infix fun throwLine(exc: LineException) {

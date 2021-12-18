@@ -1,5 +1,6 @@
-import Main.objects
-import java.lang.Exception
+package com.typeline
+
+import com.typeline.Main.objects
 
 open class LineObject(var name: String, vararg tempFunctions: LineFunction) {
     val functions: MutableList<LineFunction>
